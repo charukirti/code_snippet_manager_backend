@@ -3,7 +3,10 @@ import globalErrorHandler from "./middlewares/globalErrorHandler.js";
 
 const app = express();
 
-app.get("/", (req, res) => {
+app.use(express.json())
+app.use(express.urlencoded({extended: true}))
+
+app.get("/health", (req, res) => {
   res.json({ message: "Welcome to the api" });
 });
 
