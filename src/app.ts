@@ -1,6 +1,7 @@
 import express from 'express'
 import globalErrorHandler from "./middlewares/globalErrorHandler.js";
 import {clerkMiddleware} from '@clerk/express'
+import router from './routes/snippets.js';
 
 const app = express();
 
@@ -18,6 +19,7 @@ app.get('/', (req, res) => {
   });
 });
 
+app.use('/api/snippets', router)
 
 // global error handler middleware
 
