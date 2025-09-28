@@ -23,7 +23,7 @@ export interface Snippet {
   title: string;
   description: string;
   language: Language;
-  tags: string[];
+  tags: string;
   code: string;
   userId: string;
 }
@@ -35,7 +35,7 @@ export interface SnippetFormData {
   code: string;
   language: Language;
   tag: string;
-  description?: string;
+  description: string;
   userId?: string;
 }
 

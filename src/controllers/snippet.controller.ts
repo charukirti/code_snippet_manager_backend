@@ -1,6 +1,10 @@
 import { getAuth } from "@clerk/express";
 import type { NextFunction, Request, Response } from "express";
-import { AppError } from "../types/index.js";
+import {
+  AppError,
+  type Snippet,
+  type SnippetFormData,
+} from "../types/index.js";
 import { SnippetModel } from "../models/snippet.model.js";
 
 // get all snippet
@@ -10,15 +14,11 @@ export async function getAllSnippets(
   next: NextFunction
 ) {
   try {
-
     // TODO : Add pagination
 
     // get userId from req
 
     const { userId } = getAuth(req);
-
-     // Add this debug line:
-    console.log('UserId from getAuth:', userId);
 
     if (!userId) {
       throw new AppError("Not authenticated", 401);
@@ -28,12 +28,14 @@ export async function getAllSnippets(
 
     const snippets = await SnippetModel.find({ userId });
 
+    console.log("Snippets", snippets);
     res.json({
       message: "Success",
       data: snippets,
     });
   } catch (error) {
-    next(error);
+    console.error("Database error:", error);
+    return next(new AppError("Error while fetching snippets", 500));
   }
 }
 
@@ -51,7 +53,33 @@ export async function createSnippet(
   req: Request,
   res: Response,
   next: NextFunction
-) {}
+) {
+  try {
+    const snippetData: SnippetFormData = req.body;
+
+    const { userId } = getAuth(req);
+
+    if (!userId) {
+      throw new AppError("Not authenticated", 401);
+    }
+
+    const newSnippet: Snippet = {
+      title: snippetData.title,
+      description: snippetData.description,
+      language: snippetData.language,
+      tags: snippetData.tag,
+      code: snippetData.code,
+      userId: userId!,
+    };
+
+    await SnippetModel.create(newSnippet);
+
+    return res.status(201).json({success: true, title: newSnippet.title });
+  } catch (error) {
+    console.error("Create snippet error:", error);
+    return next(new AppError("Error while adding new snippet", 500));
+  }
+}
 
 // edit snippet
 
