@@ -14,7 +14,7 @@ router.use(protectRoute);
 
 router.get("/", getAllSnippets);
 router.post("/", createSnippet);
-router.post("/:id", updateSnippet);
+router.patch("/:id", updateSnippet);
 router.get("/:id", getSnippetById);
 router.delete("/:id", deleteSnippet);
 
