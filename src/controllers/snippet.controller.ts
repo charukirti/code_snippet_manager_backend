@@ -6,6 +6,7 @@ import {
   type SnippetFormData,
 } from "../types/index.js";
 import { SnippetModel } from "../models/snippet.model.js";
+import { isValidObjectId } from "mongoose";
 
 // get all snippet
 export async function getAllSnippets(
@@ -48,6 +49,10 @@ export async function getSnippetById(
 ) {
   try {
     const id = req.params.id;
+
+    if (!isValidObjectId(id)) {
+      return next(new AppError("Invalid snippet object id format", 400));
+    }
 
     const { userId } = getAuth(req);
 
@@ -107,7 +112,53 @@ export async function updateSnippet(
   req: Request,
   res: Response,
   next: NextFunction
-) {}
+) {
+  try {
+    // validate request
+
+    if (!req.body || Object.keys(req.body).length === 0) {
+      return res
+        .status(400)
+        .json({ message: "Data to update cannot be empty" });
+    }
+    // GET ID from params
+
+    const id = req.params.id;
+
+    if (!isValidObjectId(id)) {
+      return next(new AppError("Invalid object id format", 400));
+    }
+
+    const { userId } = getAuth(req);
+
+    if (!userId) {
+      return next(new AppError("Not authenticated", 401));
+    }
+
+    // Query DB update
+
+    const updatedSnippet = await SnippetModel.findByIdAndUpdate(
+      { _id: id, userId },
+      req.body,
+      {
+        new: true,
+        runValidators: true,
+      }
+    );
+
+    if (!updatedSnippet) {
+      return next(new AppError("Snippet not found", 404));
+    }
+
+    return res.status(200).json({
+      message: "Snippet updated successfully",
+      title: updatedSnippet?.title,
+    });
+  } catch (error) {
+    console.log("Update snippet error", error);
+    return next(new AppError("Unable to update snippet", 500));
+  }
+}
 
 // delete snippet
 
@@ -115,4 +166,34 @@ export async function deleteSnippet(
   req: Request,
   res: Response,
   next: NextFunction
-) {}
+) {
+  try {
+    const id = req.params.id;
+
+    if (!isValidObjectId(id)) {
+      return next(new AppError("Invalid object id format", 400));
+    }
+
+    const { userId } = getAuth(req);
+
+    if (!userId) {
+      return next(new AppError("Not authenticated", 401));
+    }
+
+    const deletedSnippet = await SnippetModel.findOneAndDelete({
+      _id: id,
+      userId,
+    });
+
+    if (!deletedSnippet) {
+      return next(new AppError("Snippet not found", 404));
+    }
+
+    return res
+      .status(200)
+      .json({ message: "Snippet deleted successfully", deletedSnippet });
+  } catch (error) {
+    console.log("Delete snippet error", error);
+    return next(new AppError("Unable to delete snippet", 500));
+  }
+}
