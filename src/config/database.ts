@@ -7,16 +7,15 @@ const connectDB = async () => {
       console.log("Connected to database Successfully");
     });
 
-    mongoose.connect(config.databaseUrl as string);
-
     mongoose.connection.on("error", (error) => {
       console.error("Error in connecting to database", error);
     });
+
+    await mongoose.connect(config.databaseUrl as string);
   } catch (error) {
     console.error("Failed to connect the database", error);
     process.exit(1);
   }
 };
 
-
-export default connectDB
+export default connectDB;
