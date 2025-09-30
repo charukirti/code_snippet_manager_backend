@@ -23,7 +23,7 @@ export interface Snippet {
   title: string;
   description: string;
   language: Language;
-  tags: string;
+  tag: string;
   code: string;
   userId: string;
 }

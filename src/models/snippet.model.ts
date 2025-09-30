@@ -7,7 +7,7 @@ const snippetSchema = new Schema<Snippet>(
     description: { type: String, required: true },
     code: { type: String, required: true },
     language: { type: String, required: true },
-    tags: { type: String, required: true },
+    tag: { type: String, required: true },
     userId: { type: String, required: true },
   },
   {
