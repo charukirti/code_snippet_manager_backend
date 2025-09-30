@@ -1,5 +1,5 @@
 import { Router } from "express";
-import { protectRoute } from "../middlewares/auth.js";
+import { checkAuth, protectRoute } from "../middlewares/auth.js";
 import {
   createSnippet,
   deleteSnippet,
@@ -11,6 +11,7 @@ import {
 const router = Router();
 
 router.use(protectRoute);
+router.use(checkAuth);
 
 router.get("/", getAllSnippets);
 router.post("/", createSnippet);
@@ -18,5 +19,4 @@ router.patch("/:id", updateSnippet);
 router.get("/:id", getSnippetById);
 router.delete("/:id", deleteSnippet);
 
-
-export default router
+export default router;
