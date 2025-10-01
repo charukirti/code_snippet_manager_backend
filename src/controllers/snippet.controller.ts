@@ -6,6 +6,7 @@ import {
 } from "../types/index.js";
 import { SnippetModel } from "../models/snippet.model.js";
 import { isValidObjectId } from "mongoose";
+import { logger } from "../utils/logger.js";
 
 export async function getAllSnippets(
   req: Request,
@@ -16,7 +17,7 @@ export async function getAllSnippets(
     const userId = req.userId;
 
     if (!userId) {
-      throw new AppError("Not authenticated", 401);
+      return next(new AppError("Not authenticated", 401));
     }
 
     const snippets = await SnippetModel.find({ userId }).lean();
@@ -27,6 +28,7 @@ export async function getAllSnippets(
       data: snippets,
     });
   } catch (error) {
+    logger.error("Error in getAllSnippets", error);
     return next(new AppError("Error while fetching snippets", 500));
   }
 }
@@ -57,6 +59,7 @@ export async function getSnippetById(
       data: snippet,
     });
   } catch (error) {
+    logger.error("Error in getSnippetById", error);
     return next(new AppError("Unable to retrieve snippet", 500));
   }
 }
@@ -69,10 +72,10 @@ export async function createSnippet(
   try {
     const snippetData: SnippetFormData = req.body;
 
-   const userId = req.userId;
+    const userId = req.userId;
 
     if (!userId) {
-      throw new AppError("Not authenticated", 401);
+      return next(new AppError("Not authenticated", 401));
     }
 
     const newSnippet: Snippet = {
@@ -92,6 +95,7 @@ export async function createSnippet(
       data: newSnippet,
     });
   } catch (error) {
+    logger.error("Error in createSnippet", error);
     return next(new AppError("Error while adding new snippet", 500));
   }
 }
@@ -137,6 +141,7 @@ export async function updateSnippet(
       data: updatedSnippet,
     });
   } catch (error) {
+    logger.error("Error in updateSnippet", error);
     return next(new AppError("Unable to update snippet", 500));
   }
 }
@@ -153,7 +158,7 @@ export async function deleteSnippet(
       return next(new AppError("Invalid object id format", 400));
     }
 
-   const userId = req.userId;
+    const userId = req.userId;
 
     if (!userId) {
       return next(new AppError("Not authenticated", 401));
@@ -174,6 +179,7 @@ export async function deleteSnippet(
       data: deletedSnippet,
     });
   } catch (error) {
+    logger.error("Error in deleteSnippet", error);
     return next(new AppError("Unable to delete snippet", 500));
   }
 }
