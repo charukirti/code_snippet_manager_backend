@@ -34,7 +34,8 @@ const _config = {
   env: env.NODE_ENV,
   clerk_publish: env.CLERK_PUBLISHABLE_KEY,
   clerk_secret: env.CLERK_SECRET_KEY,
-  client_url: env.CLIENT_URL,
+  client_url:
+    env.NODE_ENV === "development" ? "http://localhost:3000" : env.CLIENT_URL,
 };
 
 export const config = Object.freeze(_config);
