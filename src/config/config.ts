@@ -35,7 +35,7 @@ const _config = {
   clerk_publish: env.CLERK_PUBLISHABLE_KEY,
   clerk_secret: env.CLERK_SECRET_KEY,
   client_url:
-    env.NODE_ENV === "development" ? "http://localhost:3000" : env.CLIENT_URL,
+    env.NODE_ENV === "development" ? "https://code-snippet-manager-eight.vercel.app" : "http://localhost:3000",
 };
 
 export const config = Object.freeze(_config);
