@@ -28,6 +28,11 @@ export async function getAllSnippets(
     }
 
     const filter: FilterQuery<Snippet> = { userId };
+    const sort: Record<string, 1 | -1> = {}
+
+    if(queryResult.data.sortBy){
+      sort[queryResult.data.sortBy] = queryResult.data.order === 'desc' ? -1 : 1
+    }
 
     if (queryResult.data.language) {
       filter.language = queryResult.data.language;
@@ -45,7 +50,7 @@ export async function getAllSnippets(
       ];
     }
 
-    const snippets = await SnippetModel.find({ userId, ...filter }).lean();
+    const snippets = await SnippetModel.find(filter).sort(sort).lean();
 
     return res.status(200).json({
       success: true,
