@@ -5,8 +5,9 @@ import {
   type SnippetFormData,
 } from "../types/index.js";
 import { SnippetModel } from "../models/snippet.model.js";
-import { isValidObjectId } from "mongoose";
+import { isValidObjectId, type FilterQuery } from "mongoose";
 import { logger } from "../utils/logger.js";
+import { snippetQuerySchema } from "../schemas/snippetSchema.js";
 
 export async function getAllSnippets(
   req: Request,
@@ -20,7 +21,31 @@ export async function getAllSnippets(
       return next(new AppError("Not authenticated", 401));
     }
 
-    const snippets = await SnippetModel.find({ userId }).lean();
+    const queryResult = snippetQuerySchema.safeParse(req.query);
+
+    if (!queryResult.success) {
+      return next(new AppError("Invalid query parameters", 400));
+    }
+
+    const filter: FilterQuery<Snippet> = { userId };
+
+    if (queryResult.data.language) {
+      filter.language = queryResult.data.language;
+    }
+
+    if (queryResult.data.tag) {
+      filter.tag = queryResult.data.tag;
+    }
+
+    if (queryResult.data.search) {
+      filter.$or = [
+        { title: { $regex: queryResult.data.search, $options: "i" } },
+        { description: { $regex: queryResult.data.search, $options: "i" } },
+        { code: { $regex: queryResult.data.search, $options: "i" } },
+      ];
+    }
+
+    const snippets = await SnippetModel.find({ userId, ...filter }).lean();
 
     return res.status(200).json({
       success: true,
