@@ -28,6 +28,12 @@ export async function getAllSnippets(
     }
 
     const filter: FilterQuery<Snippet> = { userId };
+    const sort: Record<string, 1 | -1> = {};
+
+    if (queryResult.data.sortBy) {
+      sort[queryResult.data.sortBy] =
+        queryResult.data.order === "desc" ? -1 : 1;
+    }
 
     if (queryResult.data.language) {
       filter.language = queryResult.data.language;
@@ -45,12 +51,32 @@ export async function getAllSnippets(
       ];
     }
 
-    const snippets = await SnippetModel.find({ userId, ...filter }).lean();
+    const page: number = Math.max(Number(req.query.page) || 1, 1);
+    const limit: number = Math.min(Number(req.query.limit) || 4, 100);
+
+    const skip = (page - 1) * limit;
+
+    const total = await SnippetModel.countDocuments(filter);
+
+    const snippets = await SnippetModel.find(filter)
+      .sort(sort)
+      .lean()
+      .skip(skip)
+      .limit(limit);
 
     return res.status(200).json({
       success: true,
       message: "Snippets retrieved successfully",
       data: snippets,
+      pagination: {
+        total: total,
+        count: snippets.length,
+        page: page,
+        limit: limit,
+        totalPages: Math.ceil(total / limit),
+        hasNext: page * limit < total,
+        hasPrevious: page > 1,
+      },
     });
   } catch (error) {
     logger.error("Error in getAllSnippets", error);
