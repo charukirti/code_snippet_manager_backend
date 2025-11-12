@@ -26,6 +26,8 @@ export interface Snippet {
   tag: string;
   code: string;
   userId: string;
+  isFavourite?: boolean;
+  favouritedAt?: Date | null;
 }
 
 // Create / Update snippet
@@ -48,18 +50,16 @@ export interface SnippetQuery {
   limit?: number;
 }
 
-
 // Custom error class
 
 export class AppError extends Error {
-    statusCode: number;
-    isOperational: boolean
+  statusCode: number;
+  isOperational: boolean;
 
-    constructor(message:string, statusCode: number) {
-        super(message)
-        this.statusCode = statusCode
-        this.isOperational= true
-        Error.captureStackTrace(this, this.constructor)
-    }
+  constructor(message: string, statusCode: number) {
+    super(message);
+    this.statusCode = statusCode;
+    this.isOperational = true;
+    Error.captureStackTrace(this, this.constructor);
+  }
 }
-

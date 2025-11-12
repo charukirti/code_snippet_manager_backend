@@ -5,6 +5,7 @@ import {
   deleteSnippet,
   getAllSnippets,
   getSnippetById,
+  toggleFavorite,
   updateSnippet,
 } from "../controllers/snippet.controller.js";
 import { validate } from "../middlewares/validateMiddleware.js";
@@ -21,6 +22,7 @@ router.use(checkAuth);
 router.get("/", getAllSnippets);
 router.post("/", validate(createSnippetSchema), createSnippet);
 router.patch("/:id", validate(updateSnippetSchema), updateSnippet);
+router.patch("/:id/favorite", toggleFavorite)
 router.get("/:id", getSnippetById);
 router.delete("/:id", deleteSnippet);
 

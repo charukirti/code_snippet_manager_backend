@@ -197,6 +197,47 @@ export async function updateSnippet(
   }
 }
 
+export async function toggleFavorite(
+  req: Request,
+  res: Response,
+  next: NextFunction
+) {
+  try {
+    const id = req.params.id;
+    const userId = req.userId;
+
+    if (!isValidObjectId(id)) {
+      return next(new AppError("Invalid object id format", 400));
+    }
+
+    if (!userId) {
+      return next(new AppError("Not authenticated", 401));
+    }
+
+    const snippet = await SnippetModel.findOne({ _id: id, userId });
+
+    if (!snippet) {
+      return next(new AppError("Snippet not found", 404));
+    }
+
+    snippet.isFavourite = !snippet.isFavourite;
+    snippet.favouritedAt = snippet.isFavourite ? new Date() : null;
+
+    snippet.save();
+
+    return res.status(200).json({
+      success: true,
+      message: `Snippet ${
+        snippet.isFavourite ? "added to" : "removed from"
+      } favourites`,
+      data: snippet,
+    });
+  } catch (error) {
+    logger.error("Error in updateSnippet", error);
+    return next(new AppError("Unable to update snippet", 500));
+  }
+}
+
 export async function deleteSnippet(
   req: Request,
   res: Response,
