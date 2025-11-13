@@ -4,6 +4,7 @@ import {
   createSnippet,
   deleteSnippet,
   getAllSnippets,
+  getFavourites,
   getSnippetById,
   toggleFavorite,
   updateSnippet,
@@ -21,8 +22,9 @@ router.use(checkAuth);
 
 router.get("/", getAllSnippets);
 router.post("/", validate(createSnippetSchema), createSnippet);
+router.get("/favourites", getFavourites);
 router.patch("/:id", validate(updateSnippetSchema), updateSnippet);
-router.patch("/:id/favorite", toggleFavorite)
+router.patch("/:id/favourite", toggleFavorite);
 router.get("/:id", getSnippetById);
 router.delete("/:id", deleteSnippet);
 

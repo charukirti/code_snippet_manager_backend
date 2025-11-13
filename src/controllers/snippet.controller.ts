@@ -233,8 +233,85 @@ export async function toggleFavorite(
       data: snippet,
     });
   } catch (error) {
-    logger.error("Error in updateSnippet", error);
-    return next(new AppError("Unable to update snippet", 500));
+    logger.error("Error in favouriteSnippet", error);
+    return next(new AppError("Unable to favourite snippet", 500));
+  }
+}
+
+export async function getFavourites(
+  req: Request,
+  res: Response,
+  next: NextFunction
+) {
+  try {
+    const userId = req.userId;
+
+    if (!userId) {
+      return next(new AppError("Not authenticated", 401));
+    }
+
+    const queryResult = snippetQuerySchema.safeParse(req.query);
+
+    if (!queryResult.success) {
+      return next(new AppError("Invalid query params", 400));
+    }
+
+    const filter: FilterQuery<Snippet> = { userId, isFavourite: true };
+    const sort: Record<string, 1 | -1> = {};
+
+    if (queryResult.data.sortBy) {
+      sort[queryResult.data.sortBy] =
+        queryResult.data.order === "desc" ? -1 : 1;
+    } else {
+      sort.favouritedAt = -1;
+    }
+
+    if (queryResult.data.tag) {
+      filter.tag = queryResult.data.tag;
+    }
+
+    if (queryResult.data.language) {
+      filter.language = queryResult.data.language;
+    }
+
+    if (queryResult.data.search) {
+      filter.$or = [
+        { title: { $regex: queryResult.data.search, $options: "i" } },
+        { description: { $regex: queryResult.data.search, $options: "i" } },
+        { code: { $regex: queryResult.data.search, $options: "i" } },
+      ];
+    }
+
+    const page: number = Math.max(Number(req.query.page) || 1, 1);
+    const limit: number = Math.min(Number(req.query.limit) || 4, 100);
+
+    const skip = (page - 1) * limit;
+
+    const total = await SnippetModel.countDocuments(filter);
+
+    const favourites = await SnippetModel.find(filter)
+      .sort(sort)
+      .lean()
+      .skip(skip)
+      .limit(limit);
+
+    return res.status(200).json({
+      success: true,
+      message: "Favourite snippets retrieved successfully",
+      data: favourites,
+      pagination: {
+        total: total,
+        count: favourites.length,
+        page: page,
+        limit: limit,
+        totalPages: Math.ceil(total / limit),
+        hasNext: page * limit < total,
+        hasPrevious: page > 1,
+      },
+    });
+  } catch (error) {
+    logger.error("Error in getFavourites", error);
+    return next(new AppError("Unable to get favourite snippets", 500));
   }
 }
 
