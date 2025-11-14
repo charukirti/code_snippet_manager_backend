@@ -3,6 +3,7 @@ import { checkAuth, protectRoute } from "../middlewares/auth.js";
 import {
   createSnippet,
   deleteSnippet,
+  exportSnippets,
   getAllSnippets,
   getFavourites,
   getSnippetById,
@@ -23,6 +24,7 @@ router.use(checkAuth);
 router.get("/", getAllSnippets);
 router.post("/", validate(createSnippetSchema), createSnippet);
 router.get("/favourites", getFavourites);
+router.post("/export", exportSnippets)
 router.patch("/:id", validate(updateSnippetSchema), updateSnippet);
 router.patch("/:id/favourite", toggleFavorite);
 router.get("/:id", getSnippetById);

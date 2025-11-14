@@ -315,6 +315,78 @@ export async function getFavourites(
   }
 }
 
+export async function exportSnippets(
+  req: Request,
+  res: Response,
+  next: NextFunction
+) {
+  try {
+    const userId = req.userId;
+    if (!userId) {
+      return new AppError("Not authenticated", 401);
+    }
+
+    const format = req.query.format as string;
+
+    if (format !== "json") {
+      return new AppError("Currently json format export is supported", 400);
+    }
+
+    const { snippetIds } = req.body;
+
+    if (!snippetIds || !Array.isArray(snippetIds)) {
+      return new AppError("Snippet ids must be in a array format", 400);
+    }
+
+    if (snippetIds.length === 0) {
+      return new AppError("No snippets selected for export", 404);
+    }
+
+    const invalidIds = snippetIds.filter((id) => !isValidObjectId(id));
+
+    if (invalidIds.length > 0) {
+      return next(
+        new AppError(`Invalid snippet IDs: ${invalidIds.join(",")}`, 400)
+      );
+    }
+
+    const snippets = await SnippetModel.find({
+      _id: { $in: snippetIds },
+      userId: userId,
+    });
+
+    if (snippets.length === 0) {
+      return new AppError("There are no snippets to export", 404);
+    }
+
+    const exportData = {
+      exportedAt: new Date().toISOString(),
+      totolSnippets: snippets.length,
+      format: "json",
+      snippets: snippets.map((snippet) => ({
+        id: snippet._id,
+        title: snippet.title,
+        description: snippet.description,
+        code: snippet.code,
+        language: snippet.language,
+        tag: snippet.tag,
+        isFavourite: snippet.isFavourite,
+      })),
+    };
+
+    const timestamp = new Date().toISOString().replace(/[:.]/g, "-");
+    const filename = `snippet-export-${timestamp}.json`;
+
+    res.setHeader("Content-Type", "application/json");
+    res.setHeader("Content-Disposition", `attachment; filename=${filename}`);
+
+    return res.status(200).send(JSON.stringify(exportData, null, 2));
+  } catch (error) {
+    logger.error("Error exporting snippets", error);
+    return next(new AppError("Unable to export snippets", 500));
+  }
+}
+
 export async function deleteSnippet(
   req: Request,
   res: Response,
