@@ -12,7 +12,7 @@ const envSchema = z.object({
     .default("development"),
   CLERK_PUBLISHABLE_KEY: z.string().min(1, "Clerk publishable key is required"),
   CLERK_SECRET_KEY: z.string().min(1, "Clerk secret key is required"),
-  CLIENT_URL: z.string().default("http://localhost:3000"),
+  CLIENT_URL: z.string().default(process.env.CLIENT_URL!),
 });
 
 const validateEnv = () => {
@@ -35,7 +35,9 @@ const _config = {
   clerk_publish: env.CLERK_PUBLISHABLE_KEY,
   clerk_secret: env.CLERK_SECRET_KEY,
   client_url:
-    env.NODE_ENV === "development" ?  "http://localhost:3000" : process.env.CLIENT_URL,
+    env.NODE_ENV === "development"
+      ? "http://localhost:5173"
+      : process.env.CLIENT_URL,
 };
 
 export const config = Object.freeze(_config);
